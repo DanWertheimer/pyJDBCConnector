@@ -1,12 +1,22 @@
-import jpype
+from abc import ABC, abstractmethod
+from typing import Any, Callable, Optional
+
 import jaydebeapi
+import jpype
 
-from src import Connector
+
+class BaseConnector(ABC):
+
+    @abstractmethod
+    def connect(self, connection_url: str,
+                username: str, password: str) -> jaydebeapi.Connection:
+        pass
 
 
-class DenodoConnection(Connector):
-    def configure_jdbc(self, jdbc_location: str,
-                       java_classname: str = 'com.denodo.vdp.jdbc.Driver') -> Connector:
+class DenodoConnector(BaseConnector):
+    def configure_jdbc(
+        self, jdbc_location: str, java_classname: str = "com.denodo.vdp.jdbc.Driver"
+    ) -> "DenodoConnector":
         """sets the jdbc connection information
 
         :param jdbc_location: location of the jdbc .jar file on your system
@@ -20,7 +30,9 @@ class DenodoConnection(Connector):
         self.java_classname = java_classname
         return self
 
-    def set_trust_store(self, trust_store_location: str, trust_store_password: str) -> Connector:
+    def set_trust_store(
+        self, trust_store_location: str, trust_store_password: str
+    ) -> "DenodoConnector":
         """sets the trust store location for SSL connection
 
         :param trust_store_location: location of the .jks file on system
@@ -34,12 +46,13 @@ class DenodoConnection(Connector):
         self.trust_store_password = trust_store_password
         return self
 
-    def require_trust_store(self) -> Connector:
-        self.require_trust_store = True
+    def require_trust_store(self) -> "DenodoConnector":
+        self.require_trust_store = True  # type: ignore
         return self
 
-    def connect(self, connection_url: str,
-                username: str, password: str) -> jaydebeapi.Connection:
+    def connect(
+        self, connection_url: str, username: str, password: str
+    ) -> jaydebeapi.Connection:
         """connect through a jdbc string
 
         :param connection_url: a valid jdbc connection string
@@ -54,18 +67,19 @@ class DenodoConnection(Connector):
         if self.require_trust_store:
             # Initialize the JVM
             jvmPath = jpype.getDefaultJVMPath()
-            jpype.startJVM(jvmPath,
-                           f'-Djavax.net.ssl.trustStore={self.trust_store_location}',
-                           f'-Djavax.net.ssl.trustStorePassword={self.trust_store_password}',
-                           f'-Djava.class.path={self.jdbc_location}'
-                           )
+            jpype.startJVM(
+                jvmPath,
+                f"-Djavax.net.ssl.trustStore={self.trust_store_location}",
+                f"-Djavax.net.ssl.trustStorePassword={self.trust_store_password}",
+                f"-Djava.class.path={self.jdbc_location}",
+            )
 
         # Create connection
         conn = jaydebeapi.connect(
             jclassname=self.java_classname,
             url=connection_url,
             driver_args=[username, password],
-            jars=self.jdbc_location
+            jars=self.jdbc_location,
         )
 
         return conn
