@@ -27,8 +27,8 @@ class DenodoConnector(BaseConnector):
         :type jdbc_location: str
         :param java_classname: java class name for the jdbc, defaults to 'com.denodo.vdp.jdbc.Driver' for Denodo
         :type java_classname: str, optional
-        :return: a DenodoConnection object
-        :rtype: DenodoConnection
+        :return: a DenodoConnector object
+        :rtype: DenodoConnector
         """
         self.jdbc_location = jdbc_location
         self.java_classname = java_classname
@@ -43,8 +43,8 @@ class DenodoConnector(BaseConnector):
         :type trust_store_location: str
         :param trust_store_password: password for the .jks file
         :type trust_store_password: str
-        :return: a DenodoConnection object
-        :rtype: DenodoConnection
+        :return: a DenodoConnector object
+        :rtype: DenodoConnector
         """
         self.trust_store_location = trust_store_location
         self.trust_store_password = trust_store_password
