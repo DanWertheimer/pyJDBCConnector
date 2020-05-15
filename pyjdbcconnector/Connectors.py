@@ -12,6 +12,10 @@ class BaseConnector(ABC):
                 username: str, password: str) -> jaydebeapi.Connection:
         pass
 
+    @abstractmethod
+    def disconnect(self):
+        pass
+
 
 class DenodoConnector(BaseConnector):
     def configure_jdbc(
