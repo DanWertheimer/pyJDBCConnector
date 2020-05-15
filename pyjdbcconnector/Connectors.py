@@ -65,16 +65,9 @@ class DenodoConnector(BaseConnector):
         :rtype: jaydebeapi.Connection
         """
         if self.require_trust_store:
-            # Initialize the JVM
-            jvmPath = jpype.getDefaultJVMPath()
-            jpype.startJVM(
-                jvmPath,
-                f"-Djavax.net.ssl.trustStore={self.trust_store_location}",
-                f"-Djavax.net.ssl.trustStorePassword={self.trust_store_password}",
-                f"-Djava.class.path={self.jdbc_location}",
-            )
-
-        # Create connection
+            _startJVM(self.trust_store_location,
+                      self.trust_store_password, self.jdbc_location)
+            # Create connection
         conn = jaydebeapi.connect(
             jclassname=self.java_classname,
             url=connection_url,
@@ -83,3 +76,26 @@ class DenodoConnector(BaseConnector):
         )
 
         return conn
+
+    def disconnect(self):
+        _stopJVM()
+        return self
+
+
+def _startJVM(trust_store_location, trust_store_password, jdbc_location):
+    # Initialize the JVM
+    jvmPath = jpype.getDefaultJVMPath()
+    if jpype.isJVMStarted():
+        return print("JVM is already running")
+    else:
+        print("starting JVM")
+        jpype.startJVM(
+            jvmPath,
+            f"-Djavax.net.ssl.trustStore={trust_store_location}",
+            f"-Djavax.net.ssl.trustStorePassword={trust_store_password}",
+            f"-Djava.class.path={jdbc_location}",
+        )
+
+
+def _stopJVM():
+    jpype.shutdownJVM()
