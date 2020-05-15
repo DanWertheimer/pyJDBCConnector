@@ -1,9 +1,7 @@
 # user specific
 .ipynb_checkpoints/
 .vscode/
-Notebooks/
-packages/
-utils/
+mypy.ini
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
