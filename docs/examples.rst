@@ -20,7 +20,7 @@ Connect to a Denodo JDBC with SSL enabled
     file
     """
 
-    from pyjdbcconnector.Connectors import DenodoConnector
+    from pyjdbcconnector.connectors import DenodoConnector
     import pandas as pd
 
     # Set constants used to connect to the jdbc
