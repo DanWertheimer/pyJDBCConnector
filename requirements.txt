@@ -14,6 +14,3 @@ Sphinx == 3.0.3
 
 # pyJDBCConnector/tests/test_config.py: 2
 pytest == 5.4.2
-
-# pyJDBCConnector/setup.py: 1
-setuptools == 46.0.0.post20200309
