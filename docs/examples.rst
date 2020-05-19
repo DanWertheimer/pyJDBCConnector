@@ -9,6 +9,11 @@ This package is currently on PyPi and can be installed through:
 
    pip install pyjdbcconnector
 
+This package is driven primarily through config files.
+To understand how config files are set up 
+!!!!!!!!!!!!!!!!!!!!!!!!!!
+# !TODO link to config
+
 Connect to a Denodo JDBC with SSL enabled
 *****************************************
 
@@ -19,22 +24,14 @@ Connect to a Denodo JDBC with SSL enabled
     api for connecting to a Denodo based JDBC with a Trust Store
     file
     """
+    import pandas as pd
+    import configparser
 
     from pyjdbcconnector.connectors import DenodoConnector
-    import pandas as pd
-
-    # Set constants used to connect to the jdbc
-
-    TRUST_STORE_LOCATION = "path/to/trust_store.jks"
-    TRUST_STORE_PASSWORD = "<password>"
-
-    JDBC_LOCATION = "path/to/denodo-vdp-jdbcdriver.jar"
-    JAVA_CLASSNAME = "com.denodo.vdp.jdbc.Driver"
-
-    CONNECTION_URL = "jdbc:vdb://<your_denodo_url>:9999/<database>"
-
-    USERNAME = '<user>'
-    PASSWORD = '<password'
+    
+    # read the config file
+    config = configparser.ConfigParser()
+    config.read("path/to/denodo_config.ini")
 
     # Initialize a DenodoConnector object
     # the DenodoConnector object acts as 
@@ -44,13 +41,8 @@ Connect to a Denodo JDBC with SSL enabled
     # Here, we build the connection using the built-in
     # builder functions
     conn = dc\
-        .configure_jdbc(JDBC_LOCATION)\           # Set the JDBC location and class name
-        .require_trust_store()\                   # tells the DenodoConnector we'll need a .jks file
-        .set_trust_store(TRUST_STORE_LOCATION,    # pass location and password for .jks file
-                         TRUST_STORE_PASSWORD)\
-        .connect(CONNECTION_URL,                  # create connection to the jdbc database
-                USERNAME,
-                PASSWORD)   
+        .from_config(config)\
+        .connect()
 
     # this connection acts as a normal sql connection and we can use it
     # as we would use any other connection in Python

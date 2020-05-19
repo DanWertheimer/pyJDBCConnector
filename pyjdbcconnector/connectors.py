@@ -37,23 +37,28 @@ class DenodoConnector(BaseConnector):
 
     def from_config(self, config):
         if config.has_section('connection'):
-            self.connection_url = config['connection']['connection_url']
-            self.username = config['connection']['username']
-            self.password = config['connection']['password']
+            self.connection_url = config.get('connection', 'connection_url')
+            self.username = config.get('connection', 'username')
+            self.password = config.get('connection', 'password')
         else:
             raise AttributeError("'connection' not found")
 
         if config.has_section('jdbc'):
-            self.jdbc_location = config['jdbc']['jdbc_location']
-            self.java_classname = config['jdbc']['java_classname']
+            self.jdbc_location = config.get('jdbc', 'jdbc_location')
+            self.java_classname = config.get(
+                'jdbc', 'java_classname', 'com.denodo.vdp.jdbc.Driver')
+
         else:
             print("could not find 'jdbc' config")
 
         if config.has_section('trust_store'):
-            self.trust_store_location = config['trust_store']['trust_store_location']
-            self.trust_store_password = config['trust_store']['trust_store_password']
-            self.require_trust_store = True  # type:ignore
-
+            self.trust_store_location = config.get(
+                'trust_store', 'trust_store_location')
+            self.trust_store_password = config.get(
+                'trust_store', 'trust_store_password')
+            self.trust_store_required = True
+        else:
+            self.trust_store_required = False
         return self
 
     def configure_jdbc(
@@ -89,7 +94,7 @@ class DenodoConnector(BaseConnector):
         return self
 
     def require_trust_store(self) -> "DenodoConnector":
-        self.require_trust_store = True  # type: ignore
+        self.trust_store_required = True
         return self
 
     def connect(self) -> jaydebeapi.Connection:
@@ -104,7 +109,7 @@ class DenodoConnector(BaseConnector):
         :return: a jaydebeapi connection object which can be read through pandas
         :rtype: jaydebeapi.Connection
         """
-        if self.require_trust_store:
+        if self.trust_store_required:
             _startJVM(self.trust_store_location,
                       self.trust_store_password,
                       self.jdbc_location)
@@ -130,12 +135,14 @@ class HiveConnector(BaseConnector):
         if not 'connection' in config.sections():
             raise AttributeError("connection not found")
         else:
-            self.host = config['connection']['host']
-            self.port = int(config['connection']['port'])
-            self.database = config['connection']['database']
-            self.username = config['connection']['username']
-            self.auth_method = config['connection']['auth_method']
-            self.kerberos_service_name = config['connection']['kerberos_service_name']
+            self.host = config.get('connection', 'host')
+            self.port = int(config.get('connection', 'port', 10000))
+            self.database = config.get('connection', 'database')
+            self.username = config.get('connection', 'username')
+            self.auth_method = config.get(
+                'connection', 'auth_method', 'KERBEROS')
+            self.kerberos_service_name = config.get(
+                'connection', 'kerberos_service_name', 'hive')
 
         return self
 

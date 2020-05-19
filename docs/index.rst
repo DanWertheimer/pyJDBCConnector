@@ -6,6 +6,7 @@ Welcome to pyJDBCConnector's documentation!
    :caption: Contents:
 
    intro
+   configuration
    pyjdbcconnector
    examples
    
