@@ -7,7 +7,7 @@ Submodules
 pyjdbcconnector.Connectors module
 ---------------------------------
 
-.. automodule:: pyjdbcconnector.Connectors
+.. automodule:: pyjdbcconnector.connectors
    :members:
    :undoc-members:
    :show-inheritance:

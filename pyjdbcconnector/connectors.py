@@ -1,19 +1,33 @@
 from abc import ABC, abstractmethod
-
+from typing import Optional, Union, Any
 import jaydebeapi
 import jpype
+
+from pyhive import hive
+
+Connection = Union[jaydebeapi.Connection, hive.Connection]
 
 
 class BaseConnector(ABC):
 
     @abstractmethod
-    def connect(self, connection_url: str,
-                username: str, password: str) -> jaydebeapi.Connection:
-        pass
+    def connect(self, **kwds) -> Connection:
+        """a connect method that returns a connection object
+        for a particular module
+
+        :raises NotImplementedError: this method must be implemented
+        :return: a connection object which can be used as a query connection to the database
+        :rtype: Connection
+        """
+        raise NotImplementedError
 
     @abstractmethod
     def disconnect(self):
-        pass
+        """a method to disconnect/close the currently active connection
+
+        :raises NotImplementedError: this method must be implemented
+        """
+        raise NotImplementedError
 
 
 class DenodoConnector(BaseConnector):
@@ -54,7 +68,7 @@ class DenodoConnector(BaseConnector):
         return self
 
     def connect(
-        self, connection_url: str, username: str, password: str
+        self, connection_url, username, password
     ) -> jaydebeapi.Connection:
         """connect through a jdbc string
 
@@ -69,19 +83,43 @@ class DenodoConnector(BaseConnector):
         """
         if self.require_trust_store:
             _startJVM(self.trust_store_location,
-                      self.trust_store_password, self.jdbc_location)
+                      self.trust_store_password,
+                      self.jdbc_location)
             # Create connection
-        conn = jaydebeapi.connect(
+        connection = jaydebeapi.connect(
             jclassname=self.java_classname,
             url=connection_url,
             driver_args=[username, password],
             jars=self.jdbc_location,
         )
 
-        return conn
+        self.connection = connection
+        return connection
 
     def disconnect(self):
         _stopJVM()
+        return self
+
+
+class HiveConnector(BaseConnector):
+    def connect(self, host, port,                               # type: ignore
+                database, username, auth_method='KERBEROS',
+                kerberos_service_name='hive') -> Connection:
+        connection = hive.connect(host=host,
+                                  port=port,
+                                  database=database,
+                                  username=username,
+                                  auth=auth_method,
+                                  kerberos_service_name=kerberos_service_name)
+        self.connection = connection
+        return connection
+
+    def disconnect(self):
+        if self.connection:
+            print("ending active session")
+            self.connection.close()
+        else:
+            print("there is no active session")
         return self
 
 
