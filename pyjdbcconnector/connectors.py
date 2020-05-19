@@ -6,11 +6,16 @@ import jpype
 from pyhive import hive
 
 Connection = Union[jaydebeapi.Connection, hive.Connection]
+Connector = Union[DenodoConnector, HiveConnector]
 
 
 class BaseConnector(ABC):
     @abstractmethod
     def from_config(self, config) -> 'BaseConnector':
+        """loads the parameters for the connector from a config file
+
+        :raises NotImplementedError: this method must be implemented
+        """
         raise NotImplementedError
 
     @abstractmethod
@@ -35,7 +40,7 @@ class BaseConnector(ABC):
 
 class DenodoConnector(BaseConnector):
 
-    def from_config(self, config):
+    def from_config(self, config) -> Connector:
         if config.has_section('connection'):
             self.connection_url = config.get('connection', 'connection_url')
             self.username = config.get('connection', 'username')
@@ -63,7 +68,7 @@ class DenodoConnector(BaseConnector):
 
     def configure_jdbc(
         self, jdbc_location: str, java_classname: str = "com.denodo.vdp.jdbc.Driver"
-    ) -> "DenodoConnector":
+    ) -> Connector:
         """sets the jdbc connection information
 
         :param jdbc_location: location of the jdbc .jar file on your system
@@ -79,7 +84,7 @@ class DenodoConnector(BaseConnector):
 
     def set_trust_store(
         self, trust_store_location: str, trust_store_password: str
-    ) -> "DenodoConnector":
+    ) -> Connector:
         """sets the trust store location for SSL connection
 
         :param trust_store_location: location of the .jks file on system
@@ -93,11 +98,11 @@ class DenodoConnector(BaseConnector):
         self.trust_store_password = trust_store_password
         return self
 
-    def require_trust_store(self) -> "DenodoConnector":
+    def require_trust_store(self) -> Connector:
         self.trust_store_required = True
         return self
 
-    def connect(self) -> jaydebeapi.Connection:
+    def connect(self) -> Connection:
         """connect through a jdbc string
 
         :param connection_url: a valid jdbc connection string
@@ -131,7 +136,7 @@ class DenodoConnector(BaseConnector):
 
 
 class HiveConnector(BaseConnector):
-    def from_config(self, config):
+    def from_config(self, config) -> Connector:
         if not 'connection' in config.sections():
             raise AttributeError("connection not found")
         else:
@@ -156,7 +161,7 @@ class HiveConnector(BaseConnector):
         self.connection = connection
         return connection
 
-    def disconnect(self):
+    def disconnect(self) -> Connector:
         if self.connection:
             print("ending active session")
             self.connection.close()
