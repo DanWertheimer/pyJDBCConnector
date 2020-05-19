@@ -28,7 +28,8 @@ setuptools.setup(
     python_requires='>=3.6',
     install_requires=[
         'JPype1 == 0.6.3',
-        'JayDeBeApi >= 1.1.1'
+        'JayDeBeApi >= 1.1.1',
+        'PyHive == 0.6.2'
 
     ]
 )
