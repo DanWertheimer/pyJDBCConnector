@@ -8,6 +8,7 @@ Welcome to pyJDBCConnector's documentation!
    intro
    configuration
    pyjdbcconnector
+   modules
    examples
    
 Indices and tables
