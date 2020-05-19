@@ -1,25 +1,74 @@
 from abc import ABC, abstractmethod
-
+from typing import Optional, Union, Any
 import jaydebeapi
 import jpype
 
+from pyhive import hive
+
+Connection = Union[jaydebeapi.Connection, hive.Connection]
+Connector = Union[DenodoConnector, HiveConnector]
+
 
 class BaseConnector(ABC):
+    @abstractmethod
+    def from_config(self, config) -> 'BaseConnector':
+        """loads the parameters for the connector from a config file
+
+        :raises NotImplementedError: this method must be implemented
+        """
+        raise NotImplementedError
 
     @abstractmethod
-    def connect(self, connection_url: str,
-                username: str, password: str) -> jaydebeapi.Connection:
-        pass
+    def connect(self) -> Connection:
+        """a connect method that returns a connection object
+        for a particular module
+
+        :raises NotImplementedError: this method must be implemented
+        :return: a connection object which can be used as a query connection to the database
+        :rtype: Connection
+        """
+        raise NotImplementedError
 
     @abstractmethod
     def disconnect(self):
-        pass
+        """a method to disconnect/close the currently active connection
+
+        :raises NotImplementedError: this method must be implemented
+        """
+        raise NotImplementedError
 
 
 class DenodoConnector(BaseConnector):
+
+    def from_config(self, config) -> Connector:
+        if config.has_section('connection'):
+            self.connection_url = config.get('connection', 'connection_url')
+            self.username = config.get('connection', 'username')
+            self.password = config.get('connection', 'password')
+        else:
+            raise AttributeError("'connection' not found")
+
+        if config.has_section('jdbc'):
+            self.jdbc_location = config.get('jdbc', 'jdbc_location')
+            self.java_classname = config.get(
+                'jdbc', 'java_classname', 'com.denodo.vdp.jdbc.Driver')
+
+        else:
+            print("could not find 'jdbc' config")
+
+        if config.has_section('trust_store'):
+            self.trust_store_location = config.get(
+                'trust_store', 'trust_store_location')
+            self.trust_store_password = config.get(
+                'trust_store', 'trust_store_password')
+            self.trust_store_required = True
+        else:
+            self.trust_store_required = False
+        return self
+
     def configure_jdbc(
         self, jdbc_location: str, java_classname: str = "com.denodo.vdp.jdbc.Driver"
-    ) -> "DenodoConnector":
+    ) -> Connector:
         """sets the jdbc connection information
 
         :param jdbc_location: location of the jdbc .jar file on your system
@@ -35,7 +84,7 @@ class DenodoConnector(BaseConnector):
 
     def set_trust_store(
         self, trust_store_location: str, trust_store_password: str
-    ) -> "DenodoConnector":
+    ) -> Connector:
         """sets the trust store location for SSL connection
 
         :param trust_store_location: location of the .jks file on system
@@ -49,13 +98,11 @@ class DenodoConnector(BaseConnector):
         self.trust_store_password = trust_store_password
         return self
 
-    def require_trust_store(self) -> "DenodoConnector":
-        self.require_trust_store = True  # type: ignore
+    def require_trust_store(self) -> Connector:
+        self.trust_store_required = True
         return self
 
-    def connect(
-        self, connection_url: str, username: str, password: str
-    ) -> jaydebeapi.Connection:
+    def connect(self) -> Connection:
         """connect through a jdbc string
 
         :param connection_url: a valid jdbc connection string
@@ -67,21 +114,60 @@ class DenodoConnector(BaseConnector):
         :return: a jaydebeapi connection object which can be read through pandas
         :rtype: jaydebeapi.Connection
         """
-        if self.require_trust_store:
+        if self.trust_store_required:
             _startJVM(self.trust_store_location,
-                      self.trust_store_password, self.jdbc_location)
+                      self.trust_store_password,
+                      self.jdbc_location)
             # Create connection
-        conn = jaydebeapi.connect(
+        connection = jaydebeapi.connect(
             jclassname=self.java_classname,
-            url=connection_url,
-            driver_args=[username, password],
+            url=self.connection_url,
+            driver_args=[self.username, self.password],
             jars=self.jdbc_location,
         )
 
-        return conn
+        self.connection = connection
+        return connection
 
     def disconnect(self):
         _stopJVM()
+        self.connection = ''
+        return self
+
+
+class HiveConnector(BaseConnector):
+    def from_config(self, config) -> Connector:
+        if not 'connection' in config.sections():
+            raise AttributeError("connection not found")
+        else:
+            self.host = config.get('connection', 'host')
+            self.port = int(config.get('connection', 'port', 10000))
+            self.database = config.get('connection', 'database')
+            self.username = config.get('connection', 'username')
+            self.auth_method = config.get(
+                'connection', 'auth_method', 'KERBEROS')
+            self.kerberos_service_name = config.get(
+                'connection', 'kerberos_service_name', 'hive')
+
+        return self
+
+    def connect(self) -> Connection:
+        connection = hive.connect(host=self.host,
+                                  port=self.port,
+                                  database=self.database,
+                                  username=self.username,
+                                  auth=self.auth_method,
+                                  kerberos_service_name=self.kerberos_service_name)
+        self.connection = connection
+        return connection
+
+    def disconnect(self) -> Connector:
+        if self.connection:
+            print("ending active session")
+            self.connection.close()
+            self.connection = ''
+        else:
+            print("there is no active session")
         return self
 
 
