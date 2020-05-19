@@ -9,9 +9,12 @@ Connection = Union[jaydebeapi.Connection, hive.Connection]
 
 
 class BaseConnector(ABC):
+    @abstractmethod
+    def from_config(self, config) -> 'BaseConnector':
+        raise NotImplementedError
 
     @abstractmethod
-    def connect(self, **kwds) -> Connection:
+    def connect(self) -> Connection:
         """a connect method that returns a connection object
         for a particular module
 
@@ -31,6 +34,28 @@ class BaseConnector(ABC):
 
 
 class DenodoConnector(BaseConnector):
+
+    def from_config(self, config):
+        if config.has_section('connection'):
+            self.connection_url = config['connection']['connection_url']
+            self.username = config['connection']['username']
+            self.password = config['connection']['password']
+        else:
+            raise AttributeError("'connection' not found")
+
+        if config.has_section('jdbc'):
+            self.jdbc_location = config['jdbc']['jdbc_location']
+            self.java_classname = config['jdbc']['java_classname']
+        else:
+            print("could not find 'jdbc' config")
+
+        if config.has_section('trust_store'):
+            self.trust_store_location = config['trust_store']['trust_store_location']
+            self.trust_store_password = config['trust_store']['trust_store_password']
+            self.require_trust_store = True  # type:ignore
+
+        return self
+
     def configure_jdbc(
         self, jdbc_location: str, java_classname: str = "com.denodo.vdp.jdbc.Driver"
     ) -> "DenodoConnector":
@@ -67,9 +92,7 @@ class DenodoConnector(BaseConnector):
         self.require_trust_store = True  # type: ignore
         return self
 
-    def connect(
-        self, connection_url, username, password
-    ) -> jaydebeapi.Connection:
+    def connect(self) -> jaydebeapi.Connection:
         """connect through a jdbc string
 
         :param connection_url: a valid jdbc connection string
@@ -88,8 +111,8 @@ class DenodoConnector(BaseConnector):
             # Create connection
         connection = jaydebeapi.connect(
             jclassname=self.java_classname,
-            url=connection_url,
-            driver_args=[username, password],
+            url=self.connection_url,
+            driver_args=[self.username, self.password],
             jars=self.jdbc_location,
         )
 
@@ -98,19 +121,31 @@ class DenodoConnector(BaseConnector):
 
     def disconnect(self):
         _stopJVM()
+        self.connection = ''
         return self
 
 
 class HiveConnector(BaseConnector):
-    def connect(self, host, port,                               # type: ignore
-                database, username, auth_method='KERBEROS',
-                kerberos_service_name='hive') -> Connection:
-        connection = hive.connect(host=host,
-                                  port=port,
-                                  database=database,
-                                  username=username,
-                                  auth=auth_method,
-                                  kerberos_service_name=kerberos_service_name)
+    def from_config(self, config):
+        if not 'connection' in config.sections():
+            raise AttributeError("connection not found")
+        else:
+            self.host = config['connection']['host']
+            self.port = int(config['connection']['port'])
+            self.database = config['connection']['database']
+            self.username = config['connection']['username']
+            self.auth_method = config['connection']['auth_method']
+            self.kerberos_service_name = config['connection']['kerberos_service_name']
+
+        return self
+
+    def connect(self) -> Connection:
+        connection = hive.connect(host=self.host,
+                                  port=self.port,
+                                  database=self.database,
+                                  username=self.username,
+                                  auth=self.auth_method,
+                                  kerberos_service_name=self.kerberos_service_name)
         self.connection = connection
         return connection
 
@@ -118,6 +153,7 @@ class HiveConnector(BaseConnector):
         if self.connection:
             print("ending active session")
             self.connection.close()
+            self.connection = ''
         else:
             print("there is no active session")
         return self
