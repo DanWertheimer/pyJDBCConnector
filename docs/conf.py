@@ -14,7 +14,7 @@ from sphinx.util.docfields import Field
 from sphinx.application import Sphinx
 import os
 import sys
-sys.path.insert(0, os.path.abspath('../pyjdbcconnector'))
+sys.path.insert(0, os.path.abspath('./../'))
 
 
 # -- Project information -----------------------------------------------------

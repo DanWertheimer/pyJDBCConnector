@@ -4,7 +4,7 @@ pyjdbcconnector package
 Submodules
 ----------
 
-pyjdbcconnector.Connectors module
+pyjdbcconnector.connectors module
 ---------------------------------
 
 .. automodule:: pyjdbcconnector.connectors
