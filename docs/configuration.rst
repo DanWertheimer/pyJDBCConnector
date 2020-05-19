@@ -1,3 +1,6 @@
+.. _Configuration:
+
+
 Configuration File
 -------------------
 The high level api for this package is config driven. This means that certain connections

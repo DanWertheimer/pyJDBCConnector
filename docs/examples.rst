@@ -10,9 +10,7 @@ This package is currently on PyPi and can be installed through:
    pip install pyjdbcconnector
 
 This package is driven primarily through config files.
-To understand how config files are set up 
-!!!!!!!!!!!!!!!!!!!!!!!!!!
-# !TODO link to config
+To understand how config files are set up please see the :ref:`Configuration` page
 
 Connect to a Denodo JDBC with SSL enabled
 *****************************************
