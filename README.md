@@ -26,7 +26,9 @@ with familiar data.
 ## Installation/Usage:
 This package is currently on PyPi and can be installed through:
 
->pip install pyjdbcconnector
+```bash
+pip install pyjdbcconnector
+```
 
 This package is driven primarily through config files.
 To understand how config files are set up please see the [Documentation](https://pyjdbcconnector.readthedocs.io/en/latest/)
