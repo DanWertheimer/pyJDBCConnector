@@ -6,7 +6,7 @@ import jpype
 from pyhive import hive
 
 Connection = Union[jaydebeapi.Connection, hive.Connection]
-Connector = Union[DenodoConnector, HiveConnector]
+Connector = Union['DenodoConnector', 'HiveConnector']
 
 
 class BaseConnector(ABC):

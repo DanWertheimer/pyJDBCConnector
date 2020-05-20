@@ -2,7 +2,6 @@
 .ipynb_checkpoints/
 .vscode/
 mypy.ini
-setup.py
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
