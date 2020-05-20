@@ -42,35 +42,32 @@ class BaseConnector(ABC):
 class DenodoConnector(BaseConnector):
 
     def from_config(self, config_path) -> Connector:
-        config = configparser.ConfigParser()
-        _config = config.read(config_path)
-        if len(_config) == 0:
-            FileNotFoundError("config not found")
+        config = _load_config(config_path)
+        _check_config_exists(config)
+        if config.has_section('connection'):
+            self.connection_url = config.get(
+                'connection', 'connection_url')
+            self.username = config.get('connection', 'username')
+            self.password = config.get('connection', 'password')
         else:
-            if config.has_section('connection'):
-                self.connection_url = config.get(
-                    'connection', 'connection_url')
-                self.username = config.get('connection', 'username')
-                self.password = config.get('connection', 'password')
-            else:
-                raise AttributeError("'connection' not found")
+            raise AttributeError("'connection' not found")
 
-            if config.has_section('jdbc'):
-                self.jdbc_location = config.get('jdbc', 'jdbc_location')
-                self.java_classname = config.get(
-                    'jdbc', 'java_classname', fallback='com.denodo.vdp.jdbc.Driver')
+        if config.has_section('jdbc'):
+            self.jdbc_location = config.get('jdbc', 'jdbc_location')
+            self.java_classname = config.get(
+                'jdbc', 'java_classname', fallback='com.denodo.vdp.jdbc.Driver')
 
-            else:
-                print("could not find 'jdbc' config")
+        else:
+            print("could not find 'jdbc' config")
 
-            if config.has_section('trust_store'):
-                self.trust_store_location = config.get(
-                    'trust_store', 'trust_store_location')
-                self.trust_store_password = config.get(
-                    'trust_store', 'trust_store_password')
-                self.trust_store_required = True
-            else:
-                self.trust_store_required = False
+        if config.has_section('trust_store'):
+            self.trust_store_location = config.get(
+                'trust_store', 'trust_store_location')
+            self.trust_store_password = config.get(
+                'trust_store', 'trust_store_password')
+            self.trust_store_required = True
+        else:
+            self.trust_store_required = False
         return self
 
     def configure_jdbc(
@@ -144,24 +141,21 @@ class DenodoConnector(BaseConnector):
 
 class HiveConnector(BaseConnector):
     def from_config(self, config_path) -> Connector:
-        config = configparser.ConfigParser()
-        _config = config.read(config_path)
+        config = _load_config(config_path)
+        _check_config_exists(config)
 
-        if len(_config) == 0:
-            FileNotFoundError("config not found")
+        if not 'connection' in config.sections():
+            raise AttributeError("connection not found")
         else:
-            if not 'connection' in config.sections():
-                raise AttributeError("connection not found")
-            else:
-                self.host = config.get('connection', 'host')
-                self.port = int(config.get(
-                    'connection', 'port', fallback=10000))
-                self.database = config.get('connection', 'database')
-                self.username = config.get('connection', 'username')
-                self.auth_method = config.get(
-                    'connection', 'auth_method', fallback='KERBEROS')
-                self.kerberos_service_name = config.get(
-                    'connection', 'kerberos_service_name', fallback='hive')
+            self.host = config.get('connection', 'host')
+            self.port = int(config.get(
+                'connection', 'port', fallback=10000))
+            self.database = config.get('connection', 'database')
+            self.username = config.get('connection', 'username')
+            self.auth_method = config.get(
+                'connection', 'auth_method', fallback='KERBEROS')
+            self.kerberos_service_name = config.get(
+                'connection', 'kerberos_service_name', fallback='hive')
 
         return self
 
@@ -202,3 +196,16 @@ def _startJVM(trust_store_location, trust_store_password, jdbc_location):
 
 def _stopJVM():
     jpype.shutdownJVM()
+
+
+def _load_config(config_path):
+    config = configparser.ConfigParser()
+    config.read(config_path)
+    return config
+
+
+def _check_config_exists(config):
+    if len(config.sections()) == 0:
+        raise FileNotFoundError("Failed to open/find configuration file")
+    else:
+        print("Loaded config successfully")
