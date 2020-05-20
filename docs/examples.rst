@@ -26,10 +26,6 @@ Connect to a Denodo JDBC with SSL enabled
     import configparser
 
     from pyjdbcconnector.connectors import DenodoConnector
-    
-    # read the config file
-    config = configparser.ConfigParser()
-    config.read("path/to/denodo_config.ini")
 
     # Initialize a DenodoConnector object
     # the DenodoConnector object acts as 
@@ -39,7 +35,7 @@ Connect to a Denodo JDBC with SSL enabled
     # Here, we build the connection using the built-in
     # builder functions
     conn = dc\
-        .from_config(config)\
+        .from_config(path/to/denodo_config.ini)\
         .connect()
 
     # this connection acts as a normal sql connection and we can use it
