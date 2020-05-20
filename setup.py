@@ -6,7 +6,7 @@ setuptools.setup(
     version=__version__,
     description='A high level JDBC API',
     url='https://github.com/DanWertheimer/pyJDBCConnector',
-    download_url='https://github.com/DanWertheimer/pyJDBCConnector/archive/v0.1.-alpha.tar.gz',
+    download_url='https://github.com/DanWertheimer/pyJDBCConnector/archive/v0.2.0.tar.gz',
     author='Daniel Wertheimer',
     author_email='danwertheimer@gmail.com',
     packages=setuptools.find_packages(),
