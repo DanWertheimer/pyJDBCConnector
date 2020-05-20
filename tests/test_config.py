@@ -5,11 +5,8 @@ from pyjdbcconnector.connectors import DenodoConnector, HiveConnector
 
 
 def test_denodo():
-    config = configparser.ConfigParser()
-    config.read("./tests/utils/denodo_config.ini")
-
     dc = DenodoConnector()
-    dc.from_config(config)
+    dc.from_config("./tests/utils/denodo_config.ini")
 
     assert dc.connection_url == 'test_url'
     assert dc.username == 'test_username'
@@ -23,11 +20,8 @@ def test_denodo():
 
 
 def test_hive():
-    config = configparser.ConfigParser()
-    config.read("./tests/utils/hive_config.ini")
-
     dc = HiveConnector()
-    dc.from_config(config)
+    dc.from_config("./tests/utils/hive_config.ini")
 
     assert dc.host == 'host.name'
     assert dc.port == 10000
