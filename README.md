@@ -44,7 +44,6 @@ api for connecting to a Denodo based JDBC with a Trust Store
 file
 """
 import pandas as pd
-import configparser
 
 from pyjdbcconnector.connectors import DenodoConnector
 

@@ -23,7 +23,6 @@ Connect to a Denodo JDBC with SSL enabled
     file
     """
     import pandas as pd
-    import configparser
 
     from pyjdbcconnector.connectors import DenodoConnector
 
