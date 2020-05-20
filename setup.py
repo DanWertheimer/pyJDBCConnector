@@ -1,10 +1,19 @@
 import setuptools
 from pyjdbcconnector import __version__
 
+# read the contents of your README file
+from os import path
+this_directory = path.abspath(path.dirname(__file__))
+with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
+    long_description = f.read()
+
+
 setuptools.setup(
     name='pyjdbcconnector',
     version=__version__,
     description='A high level JDBC API',
+    long_description=long_description,
+    long_description_content_type='text/markdown',
     url='https://github.com/DanWertheimer/pyJDBCConnector',
     download_url='https://github.com/DanWertheimer/pyJDBCConnector/archive/v0.2.0.tar.gz',
     author='Daniel Wertheimer',
