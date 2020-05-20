@@ -35,7 +35,7 @@ Connect to a Denodo JDBC with SSL enabled
     # Here, we build the connection using the built-in
     # builder functions
     conn = dc\
-        .from_config(path/to/denodo_config.ini)\
+        .from_config("path/to/denodo_config.ini")\
         .connect()
 
     # this connection acts as a normal sql connection and we can use it

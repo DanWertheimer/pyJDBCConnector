@@ -31,5 +31,10 @@ setuptools.setup(
         'JayDeBeApi >= 1.1.1',
         'PyHive == 0.6.2'
 
-    ]
+    ],
+    project_urls={
+        'Documentation': 'https://pyjdbcconnector.readthedocs.io/en/latest/',
+        'Source': 'https://github.com/DanWertheimer/pyJDBCConnector',
+        'Say Thanks!': 'https://saythanks.io/to/danwertheimer%40gmail.com'
+    },
 )
