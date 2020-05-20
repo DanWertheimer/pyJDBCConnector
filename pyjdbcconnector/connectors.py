@@ -51,7 +51,7 @@ class DenodoConnector(BaseConnector):
         if config.has_section('jdbc'):
             self.jdbc_location = config.get('jdbc', 'jdbc_location')
             self.java_classname = config.get(
-                'jdbc', 'java_classname', 'com.denodo.vdp.jdbc.Driver')
+                'jdbc', 'java_classname', fallback='com.denodo.vdp.jdbc.Driver')
 
         else:
             print("could not find 'jdbc' config")
@@ -141,13 +141,13 @@ class HiveConnector(BaseConnector):
             raise AttributeError("connection not found")
         else:
             self.host = config.get('connection', 'host')
-            self.port = int(config.get('connection', 'port', 10000))
+            self.port = int(config.get('connection', 'port', fallback=10000))
             self.database = config.get('connection', 'database')
             self.username = config.get('connection', 'username')
             self.auth_method = config.get(
-                'connection', 'auth_method', 'KERBEROS')
+                'connection', 'auth_method', fallback='KERBEROS')
             self.kerberos_service_name = config.get(
-                'connection', 'kerberos_service_name', 'hive')
+                'connection', 'kerberos_service_name', fallback='hive')
 
         return self
 
