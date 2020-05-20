@@ -1,8 +1,9 @@
+import configparser
 from abc import ABC, abstractmethod
-from typing import Optional, Union, Any
+from typing import Any, Optional, Union
+
 import jaydebeapi
 import jpype
-
 from pyhive import hive
 
 Connection = Union[jaydebeapi.Connection, hive.Connection]
@@ -11,7 +12,7 @@ Connector = Union['DenodoConnector', 'HiveConnector']
 
 class BaseConnector(ABC):
     @abstractmethod
-    def from_config(self, config) -> 'BaseConnector':
+    def from_config(self, config_path) -> 'BaseConnector':
         """loads the parameters for the connector from a config file
 
         :raises NotImplementedError: this method must be implemented
@@ -40,30 +41,36 @@ class BaseConnector(ABC):
 
 class DenodoConnector(BaseConnector):
 
-    def from_config(self, config) -> Connector:
-        if config.has_section('connection'):
-            self.connection_url = config.get('connection', 'connection_url')
-            self.username = config.get('connection', 'username')
-            self.password = config.get('connection', 'password')
+    def from_config(self, config_path) -> Connector:
+        config = configparser.ConfigParser()
+        _config = config.read(config_path)
+        if len(_config) == 0:
+            FileNotFoundError("config not found")
         else:
-            raise AttributeError("'connection' not found")
+            if config.has_section('connection'):
+                self.connection_url = config.get(
+                    'connection', 'connection_url')
+                self.username = config.get('connection', 'username')
+                self.password = config.get('connection', 'password')
+            else:
+                raise AttributeError("'connection' not found")
 
-        if config.has_section('jdbc'):
-            self.jdbc_location = config.get('jdbc', 'jdbc_location')
-            self.java_classname = config.get(
-                'jdbc', 'java_classname', fallback='com.denodo.vdp.jdbc.Driver')
+            if config.has_section('jdbc'):
+                self.jdbc_location = config.get('jdbc', 'jdbc_location')
+                self.java_classname = config.get(
+                    'jdbc', 'java_classname', fallback='com.denodo.vdp.jdbc.Driver')
 
-        else:
-            print("could not find 'jdbc' config")
+            else:
+                print("could not find 'jdbc' config")
 
-        if config.has_section('trust_store'):
-            self.trust_store_location = config.get(
-                'trust_store', 'trust_store_location')
-            self.trust_store_password = config.get(
-                'trust_store', 'trust_store_password')
-            self.trust_store_required = True
-        else:
-            self.trust_store_required = False
+            if config.has_section('trust_store'):
+                self.trust_store_location = config.get(
+                    'trust_store', 'trust_store_location')
+                self.trust_store_password = config.get(
+                    'trust_store', 'trust_store_password')
+                self.trust_store_required = True
+            else:
+                self.trust_store_required = False
         return self
 
     def configure_jdbc(
@@ -136,18 +143,25 @@ class DenodoConnector(BaseConnector):
 
 
 class HiveConnector(BaseConnector):
-    def from_config(self, config) -> Connector:
-        if not 'connection' in config.sections():
-            raise AttributeError("connection not found")
+    def from_config(self, config_path) -> Connector:
+        config = configparser.ConfigParser()
+        _config = config.read(config_path)
+
+        if len(_config) == 0:
+            FileNotFoundError("config not found")
         else:
-            self.host = config.get('connection', 'host')
-            self.port = int(config.get('connection', 'port', fallback=10000))
-            self.database = config.get('connection', 'database')
-            self.username = config.get('connection', 'username')
-            self.auth_method = config.get(
-                'connection', 'auth_method', fallback='KERBEROS')
-            self.kerberos_service_name = config.get(
-                'connection', 'kerberos_service_name', fallback='hive')
+            if not 'connection' in config.sections():
+                raise AttributeError("connection not found")
+            else:
+                self.host = config.get('connection', 'host')
+                self.port = int(config.get(
+                    'connection', 'port', fallback=10000))
+                self.database = config.get('connection', 'database')
+                self.username = config.get('connection', 'username')
+                self.auth_method = config.get(
+                    'connection', 'auth_method', fallback='KERBEROS')
+                self.kerberos_service_name = config.get(
+                    'connection', 'kerberos_service_name', fallback='hive')
 
         return self
 
