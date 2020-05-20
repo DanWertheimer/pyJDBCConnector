@@ -15,7 +15,7 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type='text/markdown',
     url='https://github.com/DanWertheimer/pyJDBCConnector',
-    download_url='https://github.com/DanWertheimer/pyJDBCConnector/archive/v0.2.0.tar.gz',
+    download_url='https://github.com/DanWertheimer/pyJDBCConnector/archive/v0.2.1.tar.gz',
     author='Daniel Wertheimer',
     author_email='danwertheimer@gmail.com',
     packages=setuptools.find_packages(),
